@@ -45,7 +45,7 @@ function getProductInfo(order) {
   };
   let allProducts = [];
   order.lineItems.forEach(lineItem => {
-    console.log(lineItem.sku)
+    //console.log(lineItem.sku)
     const productJson = urlCall(`https://ssapi.shipstation.com/products?sku=${lineItem.sku}`,SHPST_PARAMS);
     allProducts.push(productJson.products[0]);
   })
@@ -53,30 +53,50 @@ function getProductInfo(order) {
 }
 
 function test () {
-  console.log(getProductInfo(exampleOrder))
+  //console.log(getProductInfo(exampleOrder));
+  console.log(ShipstationOrderMaker(exampleOrder));
+  
 }
 
-
-class ShipstationOrder {
-  constructor(orderNumber, orderDate,paymentDate,orderStatus,customerEmail,billTo,shipTo,items,amountPaid,taxAmount,shippingAmount,customerNotes,requestedShippingService,weight,dimensions) {
-    this.orderNumber = orderNumber,
-    this.orderDate = orderDate;
-    this.paymentDate = paymentDate;
-    this.orderStatus = orderStatus;
-    this.customerEmail = customerEmail;
-    this.billTo = billTo;
-    this.shipTo = shipTo;
-    this.items = items;
-    this.amountPaid = amountPaid;
-    this.taxAmount = taxAmount;
-    this.shippingAmount = shippingAmount;
-    this.customerNotes = customerNotes; //split by newline for q and a
-    this.requestedShippingService = requestedShippingService;
-    this.weight = weight;
-    this.dimensions = dimensions;
-  }
+function ShipstationOrderMaker (order) {
+  return new ShipstationOrder(
+    order.orderNumber,
+    order.createdOn,
+    order.createdOn,
+    order.fulfillmentStatus,
+    order.customerEmail,
+    //Billing address
+    new ShipstationAddress( 
+      order.billingAddress.firstName + order.billingAddress.lastName,
+      '',
+      order.billingAddress.address1,
+      order.billingAddress.address2,
+      '',
+      order.billingAddress.city,
+      order.billingAddress.state,
+      order.billingAddress.postalCode,
+      order.billingAddress.phone
+    ),
+    //Shipping address
+    new ShipstationAddress( 
+      order.shippingAddress.firstName + order.shippingAddress.lastName,
+      '',
+      order.shippingAddress.address1,
+      order.shippingAddress.address2,
+      '',
+      order.shippingAddress.city,
+      order.shippingAddress.state,
+      order.shippingAddress.postalCode,
+      order.shippingAddress.phone
+    ),
+    order.lineItems, //function
+    order.grandTotal.value, //Uses Squarespace's currency
+    order.taxTotal.value,
+    order.shippingTotal.value,
+    order.formSubmission, //obj with label, value
+    order.shippingLines[0].method,
+    )
 }
-
 
 
 //GET https://api.squarespace.com/{api-version}/commerce/orders?modifiedAfter={a-datetime}&modifiedBefore={b-datetime}
