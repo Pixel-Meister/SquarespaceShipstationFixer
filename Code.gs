@@ -1,58 +1,59 @@
-const apiVersion = "1.0";
-let scriptProperties = PropertiesService.getScriptProperties();
+/*let scriptProperties = PropertiesService.getScriptProperties();
 let startTime = new Date();
 startTime = encodeURIComponent(startTime.toISOString());
 let endTime = scriptProperties.getProperty('lastRan');
-const SQSP_PARAMS = {
-  "Method" : 'GET',
-  "headers" : {
-    "Authorization": `Bearer ${SQSP_KEY}`,
-    "User-Agent": "GoogleAppsScriptOrderCheck",
-    "muteHttpExceptions": true
-  }
-};
+scriptProperties.setProperty('lastRan', startTime);
+*/
 
 function urlCall(url,params, allResults = []) {
   const jsonResult = JSON.parse(UrlFetchApp.fetch(url,params).getContentText());
+  if(jsonResult.hasOwnProperty('result')) {
   allResults = allResults.concat(jsonResult.result);
-  if (jsonResult.pagination.nextPageUrl) {
+  } else {
+    allResults = jsonResult;
+  }
+  if (jsonResult.hasOwnProperty('pagination') && jsonResult.pagination.nextPageUrl) {
     allResults = urlCall(jsonResult.pagination.nextPageUrl, params, allResults);
   }
   return allResults;
 }
 
 function getMissingSqspOrders() {
-  //scriptProperties.setProperty('lastRan', startTime);
+  const SQSP_PARAMS = {
+    "Method" : 'GET',
+    "headers" : {
+      "Authorization": `Bearer ${keys.SQSP_KEY}`,
+      "User-Agent": "GoogleAppsScriptOrderCheck",
+      "muteHttpExceptions": true
+    }
+  };
+  const apiVersion = "1.0";
   startTime = encodeURIComponent("2020-12-01T00:00:00.000Z");
   endTime = encodeURIComponent("2021-02-24T14:48:00.000Z");
   let allOrders = urlCall(`https://api.squarespace.com/${apiVersion}/commerce/orders?modifiedAfter=${startTime}&modifiedBefore=${endTime}`,SQSP_PARAMS);
   allOrders = allOrders.filter(order => !order.shippingAddress.postalCode);
-  console.log(allOrders)
   return allOrders;
 }
 
-function makeShipstationOrder(order) {
-  const newOrder = ShipstationOrder()
-  
-}
-
-function getShipstationData(endpoint, filters) {
-  var root = 'ssapi.shipstation.com';
-  var params = {
+function getProductInfo(order) {
+  const SHPST_PARAMS = {
     'method': 'GET',
     'muteHttpExceptions': true,
     'headers': {
-      'Authorization': 'Basic '
+      'Authorization': `Basic ${keys.SHPST_KEY}`
     }
   };
-  
-  var response = UrlFetchApp.fetch(root+endpoint+filters, params);
-  var data = response.getContentText();
-  return JSON.parse(data);
+  let allProducts = [];
+  order.lineItems.forEach(lineItem => {
+    console.log(lineItem.sku)
+    const productJson = urlCall(`https://ssapi.shipstation.com/products?sku=${lineItem.sku}`,SHPST_PARAMS);
+    allProducts.push(productJson.products[0]);
+  })
+  return allProducts;
 }
 
 function test () {
-  makeShipstationOrder(exampleOrder);
+  console.log(getProductInfo(exampleOrder))
 }
 
 
