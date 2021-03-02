@@ -52,10 +52,23 @@ function getProductInfo(order) {
   return allProducts;
 }
 
-function test () {
-  //console.log(getProductInfo(exampleOrder));
-  console.log(ShipstationOrderMaker(exampleOrder));
-  
+function shipstationItemMaker(item) {
+  return new ShipstationOrderItem(
+    item.id,
+    item.sku,
+    item.productName,
+    item.imageUrl,
+    item.weight,
+    item.quantity,
+    item.unitPricePaid.value,
+    null,
+    null,
+    null,
+    item.options,
+    item.productId, //lookup from all products
+    null,
+    false,
+    null)
 }
 
 function ShipstationOrderMaker (order) {
@@ -89,7 +102,8 @@ function ShipstationOrderMaker (order) {
       order.shippingAddress.postalCode,
       order.shippingAddress.phone
     ),
-    order.lineItems, //function
+    //Order items
+    new ShipstationOrderItem, //function
     order.grandTotal.value, //Uses Squarespace's currency
     order.taxTotal.value,
     order.shippingTotal.value,
@@ -98,6 +112,12 @@ function ShipstationOrderMaker (order) {
     )
 }
 
+function test () {
+  //console.log(getProductInfo(exampleOrder));
+  //console.log(ShipstationOrderMaker(exampleOrder));
+  console.log(exampleOrder.lineItems[0]);
+  
+}
 
 //GET https://api.squarespace.com/{api-version}/commerce/orders?modifiedAfter={a-datetime}&modifiedBefore={b-datetime}
 //ISO 8601 UTC date and time string, e.g. YYYY-MM-DDThh:mm:ss.sZ
