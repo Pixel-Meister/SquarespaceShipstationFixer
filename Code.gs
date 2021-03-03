@@ -35,43 +35,11 @@ function getMissingSqspOrders() {
   return allOrders;
 }
 
-function getProductInfo(order) {
-  const SHPST_PARAMS = {
-    'method': 'GET',
-    'muteHttpExceptions': true,
-    'headers': {
-      'Authorization': `Basic ${keys.SHPST_KEY}`
-    }
-  };
-  let allProducts = [];
-  order.lineItems.forEach(lineItem => {
-    //console.log(lineItem.sku)
-    const productJson = urlCall(`https://ssapi.shipstation.com/products?sku=${lineItem.sku}`,SHPST_PARAMS);
-    allProducts.push(productJson.products[0]);
-  })
-  return allProducts;
-}
-
-function shipstationItemMaker(item) {
-  return new ShipstationOrderItem(
-    item.id,
-    item.sku,
-    item.productName,
-    item.imageUrl,
-    item.weight,
-    item.quantity,
-    item.unitPricePaid.value,
-    null,
-    null,
-    null,
-    item.options,
-    item.productId, //lookup from all products
-    null,
-    false,
-    null)
-}
-
 function ShipstationOrderMaker (order) {
+  var items = order.lineItems.map(item => new ShipstationOrderItem(item.sku,item.productName,item.weight,item.quantity,item.unitPricePaid,false,null));
+  var discounts = order.discountLines.map(discount => new ShipstationOrderItem('',discount.name,null,1,-Math.abs(discount.amount.value),true,'Discount'));
+  var orderItems = [...items,...discounts];
+
   return new ShipstationOrder(
     order.orderNumber,
     order.createdOn,
@@ -103,7 +71,7 @@ function ShipstationOrderMaker (order) {
       order.shippingAddress.phone
     ),
     //Order items
-    new ShipstationOrderItem, //function
+    orderItems,
     order.grandTotal.value, //Uses Squarespace's currency
     order.taxTotal.value,
     order.shippingTotal.value,
@@ -113,10 +81,13 @@ function ShipstationOrderMaker (order) {
 }
 
 function test () {
-  //console.log(getProductInfo(exampleOrder));
-  //console.log(ShipstationOrderMaker(exampleOrder));
-  console.log(exampleOrder.lineItems[0]);
-  
+  console.log(fixMissingOrders()[0]);
+}
+
+function fixMissingOrders() {
+  let missingOrders = [];
+  getMissingSqspOrders().forEach(order => {missingOrders.push(ShipstationOrderMaker(order))});
+  return missingOrders;
 }
 
 //GET https://api.squarespace.com/{api-version}/commerce/orders?modifiedAfter={a-datetime}&modifiedBefore={b-datetime}

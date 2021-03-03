@@ -36,27 +36,16 @@ class ShipstationAddress {
 
 //https://www.shipstation.com/docs/api/models/order-item/
 class ShipstationOrderItem {
-  constructor(lineItemKey,sku,name,imageUrl,weight,quantity,unitPrice,taxAmount,shippingAmount,warehouseLocation,options,productId,fulfillmentSku,adjustment,upc) {
-    this.orderItemId = null
-    this.lineItemKey = lineItemKey;
+  constructor(sku,name,weight,quantity,unitPrice,adjustment,lineItemKey) {
     this.sku = sku;
     this.name = name;
-    this.imageUrl = imageUrl;
     this.weight = {
       "value" : weight,
       "units" : "pounds",
     };
     this.quantity = quantity;
     this.unitPrice = unitPrice;
-    this.taxAmount = taxAmount;
-    this.shippingAmount = shippingAmount;
-    this.warehouseLocation = warehouseLocation;
-    this.options = options;
-    this.productId = productId;
-    this.fulfillmentSku = fulfillmentSku;
     this.adjustment = adjustment;
-    this.upc = upc;
-    this.createDate = null;
-    this.modifyDate = null;
+    this.lineItemKey = lineItemKey;
   }
 }
