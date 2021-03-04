@@ -26,7 +26,7 @@ function getMissingSqspOrders(startTime, endTime) {
   return allOrders;
 }
 
-function ShipstationOrderMaker (order) {
+function shipstationOrderMaker (order) {
   var items = order.lineItems.map(item => new ShipstationOrderItem(item.sku,item.productName,item.weight,item.quantity,item.unitPricePaid,false,null));
   var discounts = order.discountLines.map(discount => new ShipstationOrderItem('',discount.name,null,1,-Math.abs(discount.amount.value),true,'Discount'));
   var orderItems = [...items,...discounts];
@@ -71,7 +71,16 @@ function ShipstationOrderMaker (order) {
     )
 }
 
-function test () {
+function fixMissingOrders(startTime, endTime) {
+  let missingOrders = [];
+  let createdOrderNumbersArray = JSON.parse(ScriptProperties.getProperty(createdOrderNumbers));
+  getMissingSqspOrders(startTime, endTime)
+  .filter(order => !createdOrderNumbersArray.includes(order.orderNumber))
+  .forEach(order => {missingOrders.push(shipstationOrderMaker(order))});
+  return missingOrders;
+}
+
+function main () {
   let scriptProperties = PropertiesService.getScriptProperties();
   scriptProperties.setProperties({
     'lastRan': currentTime,
@@ -85,22 +94,13 @@ function test () {
     },
     'body' : fixMissingOrders(encodeURIComponent(lastRan.toISOString()),encodeURIComponent(currentTime.toISOString()))
   }
-  //Run function
+
   const result = JSON.parse(UrlFetchApp.fetch('ssapi.shipstation.com/orders/createorders',SHPST_PARAMS).getContentText());
   if(result.hasErrors == True) {
     console.log('There was an error: ' + result.results.toString())}
   if(results.results) {
     scriptProperties.setProperty('createdOrderNumbers', result.results.map(createdOrder => createdOrder.orderNumber).toString())};
   }
-
-function fixMissingOrders(startTime, endTime) {
-  let missingOrders = [];
-  let createdOrderNumbersArray = JSON.parse(ScriptProperties.getProperty(createdOrderNumbers));
-  getMissingSqspOrders(startTime, endTime)
-  .filter(order => !createdOrderNumbersArray.includes(order.orderNumber))
-  .forEach(order => {missingOrders.push(ShipstationOrderMaker(order))});
-  return missingOrders;
-}
 
 //GET https://api.squarespace.com/{api-version}/commerce/orders?modifiedAfter={a-datetime}&modifiedBefore={b-datetime}
 //ISO 8601 UTC date and time string, e.g. YYYY-MM-DDThh:mm:ss.sZ
