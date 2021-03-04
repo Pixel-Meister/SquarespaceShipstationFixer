@@ -1,10 +1,3 @@
-/*let scriptProperties = PropertiesService.getScriptProperties();
-let startTime = new Date();
-startTime = encodeURIComponent(startTime.toISOString());
-let endTime = scriptProperties.getProperty('lastRan');
-scriptProperties.setProperty('lastRan', startTime);
-*/
-
 function urlCall(url,params, allResults = []) {
   const jsonResult = JSON.parse(UrlFetchApp.fetch(url,params).getContentText());
   if(jsonResult.hasOwnProperty('result')) {
@@ -18,7 +11,7 @@ function urlCall(url,params, allResults = []) {
   return allResults;
 }
 
-function getMissingSqspOrders() {
+function getMissingSqspOrders(startTime, endTime) {
   const SQSP_PARAMS = {
     "Method" : 'GET',
     "headers" : {
@@ -28,8 +21,6 @@ function getMissingSqspOrders() {
     }
   };
   const apiVersion = "1.0";
-  startTime = encodeURIComponent("2020-12-01T00:00:00.000Z");
-  endTime = encodeURIComponent("2021-02-24T14:48:00.000Z");
   let allOrders = urlCall(`https://api.squarespace.com/${apiVersion}/commerce/orders?modifiedAfter=${startTime}&modifiedBefore=${endTime}`,SQSP_PARAMS);
   allOrders = allOrders.filter(order => !order.shippingAddress.postalCode && order.fulfillmentStatus == "PENDING");
   return allOrders;
@@ -81,21 +72,33 @@ function ShipstationOrderMaker (order) {
 }
 
 function test () {
+  let scriptProperties = PropertiesService.getScriptProperties();
+  scriptProperties.setProperties({
+    'lastRan': currentTime,
+    'currentTime' : new Date()
+  })
   const SHPST_PARAMS = {
     'method': 'POST',
     'muteHttpExceptions': true,
     'headers' : {
       'Authorization': `Basic ${keys.SHPST_KEY}`
     },
-    'body' : fixMissingOrders()
+    'body' : fixMissingOrders(encodeURIComponent(lastRan.toISOString()),encodeURIComponent(currentTime.toISOString()))
+  }
+  //Run function
+  const result = JSON.parse(UrlFetchApp.fetch('ssapi.shipstation.com/orders/createorders',SHPST_PARAMS).getContentText());
+  if(result.hasErrors == True) {
+    console.log('There was an error: ' + result.results.toString())}
+  if(results.results) {
+    scriptProperties.setProperty('createdOrderNumbers', result.results.map(createdOrder => createdOrder.orderNumber).toString())};
   }
 
-  //console.log(UrlFetchApp.fetch('ssapi.shipstation.com/orders/createorders',SHPST_PARAMS).getContentText());
-  }
-
-function fixMissingOrders() {
+function fixMissingOrders(startTime, endTime) {
   let missingOrders = [];
-  getMissingSqspOrders().forEach(order => {missingOrders.push(ShipstationOrderMaker(order))});
+  let createdOrderNumbersArray = JSON.parse(ScriptProperties.getProperty(createdOrderNumbers));
+  getMissingSqspOrders(startTime, endTime)
+  .filter(order => !createdOrderNumbersArray.includes(order.orderNumber))
+  .forEach(order => {missingOrders.push(ShipstationOrderMaker(order))});
   return missingOrders;
 }
 
