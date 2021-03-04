@@ -31,7 +31,7 @@ function getMissingSqspOrders() {
   startTime = encodeURIComponent("2020-12-01T00:00:00.000Z");
   endTime = encodeURIComponent("2021-02-24T14:48:00.000Z");
   let allOrders = urlCall(`https://api.squarespace.com/${apiVersion}/commerce/orders?modifiedAfter=${startTime}&modifiedBefore=${endTime}`,SQSP_PARAMS);
-  allOrders = allOrders.filter(order => !order.shippingAddress.postalCode);
+  allOrders = allOrders.filter(order => !order.shippingAddress.postalCode && order.fulfillmentStatus == "PENDING");
   return allOrders;
 }
 
@@ -81,8 +81,17 @@ function ShipstationOrderMaker (order) {
 }
 
 function test () {
-  console.log(fixMissingOrders()[0]);
-}
+  const SHPST_PARAMS = {
+    'method': 'POST',
+    'muteHttpExceptions': true,
+    'headers' : {
+      'Authorization': `Basic ${keys.SHPST_KEY}`
+    },
+    'body' : fixMissingOrders()
+  }
+
+  //console.log(UrlFetchApp.fetch('ssapi.shipstation.com/orders/createorders',SHPST_PARAMS).getContentText());
+  }
 
 function fixMissingOrders() {
   let missingOrders = [];
