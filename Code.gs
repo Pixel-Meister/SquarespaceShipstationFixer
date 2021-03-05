@@ -83,6 +83,7 @@ function fixMissingOrders(startTime, endTime) {
   getMissingSqspOrders(startTime, endTime)
   .filter(order => !createdOrderNumbersArray.includes(order.orderNumber))
   .forEach(order => {missingOrders.push(shipstationOrderMaker(order));});
+  if(missingOrders == false) {throw 'No missing orders'}
   return missingOrders;
 }
 
@@ -105,8 +106,17 @@ function main () {
   console.log(SHPST_PARAMS.body);
 
   const result = JSON.parse(UrlFetchApp.fetch('ssapi.shipstation.com/orders/createorders',SHPST_PARAMS).getContentText());
+  console.log(result);
   if(result.hasErrors == True) {
     console.log('There was an error: ' + result.results.toString());}
   if(results.results) {
     PropertiesService.getScriptProperties().setProperty('createdOrderNumbers', JSON.stringify(result.results.map(createdOrder => createdOrder.orderNumber)));}
+  }
+
+  function mainWrapper () {
+    try {
+      main();
+    } catch (error) {
+      console.log(error)
+    }
   }
