@@ -1,3 +1,9 @@
+function runForFirstRun () {
+  PropertiesService.getScriptProperties().setProperty('createdOrderNumbers',JSON.stringify([01, 1, 52]));
+  PropertiesService.getScriptProperties().setProperty('lastRan',"2021-03-05T16:54:05.214Z");
+  PropertiesService.getScriptProperties().setProperty('currentTime',"2021-03-01T16:54:05.214Z");
+  }
+
 function urlCall(url,params, allResults = []) {
   const jsonResult = JSON.parse(UrlFetchApp.fetch(url,params).getContentText());
   if(jsonResult.hasOwnProperty('result')) {
@@ -67,41 +73,40 @@ function shipstationOrderMaker (order) {
     order.taxTotal.value,
     order.shippingTotal.value,
     order.formSubmission, //obj with label, value
-    order.shippingLines[0].method,
-    )
+    order.shippingLines[0].method
+    );
 }
 
 function fixMissingOrders(startTime, endTime) {
   let missingOrders = [];
-  let createdOrderNumbersArray = JSON.parse(ScriptProperties.getProperty(createdOrderNumbers));
+  let createdOrderNumbersArray = JSON.parse(PropertiesService.getScriptProperties().getProperty('createdOrderNumbers'));
   getMissingSqspOrders(startTime, endTime)
   .filter(order => !createdOrderNumbersArray.includes(order.orderNumber))
-  .forEach(order => {missingOrders.push(shipstationOrderMaker(order))});
+  .forEach(order => {missingOrders.push(shipstationOrderMaker(order));});
   return missingOrders;
 }
 
 function main () {
-  let scriptProperties = PropertiesService.getScriptProperties();
-  scriptProperties.setProperties({
-    'lastRan': currentTime,
-    'currentTime' : new Date()
-  })
+  const lastRan = PropertiesService.getScriptProperties().getProperty('currentTime');
+  let now = new Date();
+  now = now.toISOString();
+  PropertiesService.getScriptProperties().setProperties({
+    'lastRan' : lastRan,
+    'currentTime' : now
+  });
   const SHPST_PARAMS = {
     'method': 'POST',
     'muteHttpExceptions': true,
     'headers' : {
       'Authorization': `Basic ${keys.SHPST_KEY}`
     },
-    'body' : fixMissingOrders(encodeURIComponent(lastRan.toISOString()),encodeURIComponent(currentTime.toISOString()))
-  }
+    'body' : fixMissingOrders(encodeURIComponent(lastRan),encodeURIComponent(now))
+  };
+  console.log(SHPST_PARAMS.body);
 
   const result = JSON.parse(UrlFetchApp.fetch('ssapi.shipstation.com/orders/createorders',SHPST_PARAMS).getContentText());
   if(result.hasErrors == True) {
-    console.log('There was an error: ' + result.results.toString())}
+    console.log('There was an error: ' + result.results.toString());}
   if(results.results) {
-    scriptProperties.setProperty('createdOrderNumbers', result.results.map(createdOrder => createdOrder.orderNumber).toString())};
+    PropertiesService.getScriptProperties().setProperty('createdOrderNumbers', JSON.stringify(result.results.map(createdOrder => createdOrder.orderNumber)));}
   }
-
-//GET https://api.squarespace.com/{api-version}/commerce/orders?modifiedAfter={a-datetime}&modifiedBefore={b-datetime}
-//ISO 8601 UTC date and time string, e.g. YYYY-MM-DDThh:mm:ss.sZ
-//For the date, use new Date and toISOString()
