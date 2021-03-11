@@ -93,7 +93,7 @@ function fixMissingOrders(startTime, endTime) {
 }
 
 function main () {
-  const lastRan = '2021-03-05T18:23:31.328Z' //PropertiesService.getScriptProperties().getProperty('currentTime');
+  const lastRan = PropertiesService.getScriptProperties().getProperty('currentTime');
   let now = new Date();
   now = now.toISOString();
   PropertiesService.getScriptProperties().setProperties({
