@@ -27,7 +27,7 @@ class ShipstationOrder {
     this.packageCode = null;
     this.confirmation = null;
     this.shipDate = null;
-    this.weight = {'value':null,'units':'pounds'};
+    this.weight = {'value':0,'units':'pounds'};
     this.dimensions = {'length': 0,'width':0,'height':0,'units':'inches'};
     this.insuranceOptions = {'provider':'carrier','insureShipment':false,'insuredValue':0};
     this.internationalOptions = {'contents':null,'customsItems':null,'nonDelivery':null};
