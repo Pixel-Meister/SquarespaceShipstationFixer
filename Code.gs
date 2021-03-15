@@ -1,7 +1,11 @@
 function runForFirstRun () {
-  PropertiesService.getScriptProperties().setProperty('createdOrderNumbers',JSON.stringify([01, 1, 52]));
-  PropertiesService.getScriptProperties().setProperty('lastRan',"2021-03-05T16:54:05.214Z");
-  PropertiesService.getScriptProperties().setProperty('currentTime',"2021-03-01T16:54:05.214Z");
+  let newProperties = {
+    'createdOrderNumbers': JSON.stringify([01, 1, 52]),
+    'currentTime': "2021-03-01T16:54:05.214Z",
+    "shipstationKey" : "YOUR_KEY",
+    "squarespaceKey" : "YOUR_KEY"
+  }
+  PropertiesService.getScriptProperties().setProperties(newProperties);
 }
 
 function urlCall(url,params, allResults = []) {
@@ -21,7 +25,7 @@ function getMissingSqspOrders(startTime, endTime) {
   const SQSP_PARAMS = {
     "Method" : 'GET',
     "headers" : {
-      "Authorization": `Bearer ${keys.SQSP_KEY}`,
+      "Authorization": `Bearer ${PropertiesService.getScriptProperties().getProperty('squarespaceKey')}`,
       "User-Agent": "GoogleAppsScriptOrderCheck",
       "muteHttpExceptions": true
     }
@@ -101,7 +105,7 @@ function main () {
     'muteHttpExceptions': true,
     'contentType' : 'application/json',
     'headers' : {
-      'Authorization': `Basic ${keys.SHPST_KEY}`
+      'Authorization': `Basic ${PropertiesService.getScriptProperties().getProperty('shipstationKey')}`
     },
     'payload' : JSON.stringify(fixMissingOrders(encodeURIComponent(lastRan),encodeURIComponent(now)))
   };
@@ -113,7 +117,6 @@ function main () {
     console.log('There was an error: ' + result.results.toString());
 } else {
   PropertiesService.getScriptProperties().setProperties({
-    'lastRan' : lastRan,
     'currentTime' : now
   });
   if(result.results) {
