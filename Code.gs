@@ -1,13 +1,3 @@
-function runForFirstRun () {
-  let newProperties = {
-    'createdOrderNumbers': JSON.stringify([01, 1, 52]),
-    'currentTime': "2021-03-01T16:54:05.214Z",
-    "shipstationKey" : "YOUR_KEY",
-    "squarespaceKey" : "YOUR_KEY"
-  }
-  PropertiesService.getScriptProperties().setProperties(newProperties);
-}
-
 function urlCall(url,params, allResults = []) {
   const jsonResult = JSON.parse(UrlFetchApp.fetch(url,params).getContentText());
   if(jsonResult.hasOwnProperty('result')) {
@@ -132,4 +122,14 @@ function mainWrapper () {
     } catch (error) {
       console.log(error)
     }
+}
+
+function runForFirstRun () {
+  let newProperties = {
+    'createdOrderNumbers': JSON.stringify([01, 1, 52]),
+    'currentTime': "2021-03-01T16:54:05.214Z",
+    "shipstationKey" : "YOUR_KEY",
+    "squarespaceKey" : "YOUR_KEY"
+  }
+  PropertiesService.getScriptProperties().setProperties(newProperties);
 }
