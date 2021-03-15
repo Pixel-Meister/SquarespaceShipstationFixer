@@ -1,0 +1,4 @@
+const keys = {
+  SQSP_KEY : '2c2e2e9c-9c04-4582-8136-0d778a1a6a3d',
+  SHPST_KEY : 'MzNkZWVhNzljMThlNDZjODhlNTI2ZmNiNjIzNjQ2MGQ6MDJhZTQ2NjdkMDhiNDZmNzgwYmZhMDFhNTI0ZWFjNjI='
+}

@@ -96,10 +96,6 @@ function main () {
   const lastRan = PropertiesService.getScriptProperties().getProperty('currentTime');
   let now = new Date();
   now = now.toISOString();
-  PropertiesService.getScriptProperties().setProperties({
-    'lastRan' : lastRan,
-    'currentTime' : now
-  });
   const SHPST_PARAMS = {
     'method': 'POST',
     'muteHttpExceptions': true,
@@ -114,10 +110,18 @@ function main () {
   const result = UrlFetchApp.fetch('https://ssapi.shipstation.com/orders/createorders',SHPST_PARAMS).getContentText();
   console.log(result);
   if(result.hasErrors == true) {
-    console.log('There was an error: ' + result.results.toString());}
+    console.log('There was an error: ' + result.results.toString());
+} else {
+  PropertiesService.getScriptProperties().setProperties({
+    'lastRan' : lastRan,
+    'currentTime' : now
+  });
   if(result.results) {
-    PropertiesService.getScriptProperties().setProperty('createdOrderNumbers', JSON.stringify(result.results.map(createdOrder => createdOrder.orderNumber)));}
+    PropertiesService.getScriptProperties().setProperty('createdOrderNumbers', JSON.stringify(result.results.map(createdOrder => createdOrder.orderNumber)));
+  }
 }
+}
+
 
 function mainWrapper () {
     try {
