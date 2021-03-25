@@ -1,3 +1,5 @@
+Update 3/25/2021 the issue with the integration was fixed so this script is no longer required.
+
 # SquarespaceShipstationFixer
 Shipstation's Squarespace integration doesn't import orders that are missing postal codes. This Google Apps Script resends those orders with a 00000 postal code.
 
